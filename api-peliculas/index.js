@@ -148,7 +148,7 @@ app.get('/media',(req, res)=>{
 
 app.delete('/delete/:id', (req, res) =>{
   const id = Number(req.params.id);
-  const index = peliculas.indexOf(p => p.id = id)
+  const index = peliculas.findIndex(p => p.id === id)
 
   if (index === -1) {
     return res.status(404).json({error: "esa peli no está"});
@@ -158,3 +158,56 @@ app.delete('/delete/:id', (req, res) =>{
 
   res.json({ mensaje: 'Pelicula eleiminada', 'pelicula eliminada': eliminada});
 });
+
+
+//BONUS
+// PUT /peliculas/:id actualizar todos los campos
+app.put('/peliculas/:id', (req, res) => {
+    const { id } = req.params;
+    const index = peliculas.findIndex(p => p.id === parseInt(id));
+
+    if (index !== -1) {
+        // En PUT reemplazamos el objeto completo con lo que viene en el body
+        peliculas[index] = { id: parseInt(id), ...req.body };
+        res.json({ mensaje: "Película actualizada (PUT)", pelicula: peliculas[index] });
+    } else {
+        res.status(404).send("No encontrada");
+    }
+});
+
+
+
+// PATCH /peliculas/:id que actualice solo algunos campos {...pelicula, req-body}
+app.patch('/paliculas/:id',(req, res)=>{
+  const { id } = req.params;
+  const indice = peliculas.findIndex(p => p.id === parseInt(id));
+
+  if (indice === -1) {
+    // pelicula no encontrada porque no hay indice
+    res.status(404).json({mensaje: "Ese indice no encontro Pelicula"});
+  }
+
+  //mantenemos lo que había y sobrescribimos con lo nuevo
+  peliculas[indice] = {...peliculas[indice], ...req.body};
+  res.json(peliculas[indice]);
+
+});
+
+
+// GET /peliculas?buscar=nolan filtrar por director o título
+
+// GET: Búsqueda por texto (Query Params)
+app.get( '/peliculas',(req, res) => {
+    const { buscar } = req.query;
+    let resultado = peliculas;
+
+    if (buscar) {
+        const termino = buscar.toLowerCase();
+        resultado = peliculas.filter(p => 
+            p.titulo.toLowerCase().includes(termino) || 
+            p.director.toLowerCase().includes(termino)
+        );
+    }
+    res.json(resultado);
+}
+);
